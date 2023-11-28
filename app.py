@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import time
 import glob
-from gtts import gTTS
+import pyttsx3
 from googletrans import Translator
 
 # Create 'temp' directory if it doesn't exist
@@ -25,7 +25,7 @@ def remove_files(n):
             if os.stat(f).st_mtime < now - n_days:
                 os.remove(f)
 
-def text_to_speech(input_language, output_language, text, tld):
+def text_to_speech(input_language, output_language, text):
     max_retries = 3
     for _ in range(max_retries):
         try:
@@ -38,13 +38,12 @@ def text_to_speech(input_language, output_language, text, tld):
     else:
         raise RuntimeError("Failed to translate text after multiple retries.")
 
-    tts = gTTS(trans_text, lang=output_language, tld=tld, slow=False)
-    try:
-        my_file_name = text[0:20]
-    except IndexError:
-        my_file_name = "audio"
-    tts.save(f"temp/{my_file_name}.mp3")
-    return my_file_name, trans_text
+    # Use pyttsx3 for text-to-speech
+    engine = pyttsx3.init()
+    engine.save_to_file(trans_text, f"temp/output.mp3")
+    engine.runAndWait()
+
+    return "output", trans_text
 
 # GUI
 text = st.text_input("Enter text")
@@ -89,8 +88,8 @@ elif out_lang == "Portuguese":
 
 # Text-to-Speech Conversion
 if st.button("Convert"):
-    result, output_text = text_to_speech(input_language, output_language, text, "com")
-    audio_file = open(f"temp/{result}.mp3", "rb")
+    result, output_text = text_to_speech(input_language, output_language, text)
+    audio_file = open("temp/output.mp3", "rb")
     audio_bytes = audio_file.read()
     st.markdown("## Your audio:")
     st.audio(audio_bytes, format="audio/mp3", start_time=0)
@@ -101,5 +100,3 @@ if st.button("Convert"):
 
 # Remove old audio files
 remove_files(7)
-
-
