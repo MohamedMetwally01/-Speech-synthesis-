@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import time
 import glob
-
+import pyttsx3
 from googletrans import Translator
 
 # Create 'temp' directory if it doesn't exist
