@@ -1,3 +1,0 @@
-streamlit==1.16.0
-pyttsx3==2.90
-googletrans==2.0.0
