@@ -1,3 +1,4 @@
 googletrans==3.0.0
 gtts==2.4.0
 streamlit==1.29.0
+mtranslate==1.7
