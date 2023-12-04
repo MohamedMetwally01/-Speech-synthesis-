@@ -28,8 +28,9 @@ def text_to_speech(input_language, output_language, text, tld):
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         try:
-            translator = Translator(to_lang=output_language, from_lang=input_language)
-            trans_text = translator.translate(text)
+            translator= Translator(to_lang=output_language, from_lang=input_language)
+            translation = translator.translate(text)
+            trans_text = translation
             break  # Break out of the loop if translation is successful
         except Exception as e:
             st.error(f"Translation failed on attempt {attempt}/{max_retries}. Error: {e}")
@@ -50,37 +51,17 @@ def text_to_speech(input_language, output_language, text, tld):
 
 # GUI
 text = st.text_input("Enter text")
-in_lang = st.selectbox("Select your input language", ("English", "Arabic"))
+in_lang = st.selectbox("Select your input language", ("en", "ar"))  # Use language codes for input
 out_lang = st.selectbox(
     "Select your output language",
-    ("English", "Arabic", "Hebrew", "Russian", "German", "Hindi", "Korean", "Japanese", "Chinese", "Italian", "Spanish", "French", "Portuguese")
+    ("en", "ar", "iw", "ru", "de", "hi", "ko", "ja", "zh-cn", "it", "es", "fr", "pt")
 )
 display_output_text = st.checkbox("Display output text")
-
-# Language code mapping
-lang_mapping = {
-    "English": "en",
-    "Arabic": "ar",
-    "Hebrew": "iw",
-    "Russian": "ru",
-    "German": "de",
-    "Hindi": "hi",
-    "Korean": "ko",
-    "Japanese": "ja",
-    "Chinese": "zh-cn",
-    "Italian": "it",
-    "Spanish": "es",
-    "French": "fr",
-    "Portuguese": "pt",
-}
-
-input_language = lang_mapping.get(in_lang, "en")
-output_language = lang_mapping.get(out_lang, "en")
 
 # Text-to-Speech Conversion
 if st.button("Convert"):
     try:
-        result, output_text = text_to_speech(input_language, output_language, text, "com")
+        result, output_text = text_to_speech(in_lang, out_lang, text, "com")
         audio_file = open(f"temp/{result}.mp3", "rb")
         audio_bytes = audio_file.read()
         st.markdown("## Your audio:")
