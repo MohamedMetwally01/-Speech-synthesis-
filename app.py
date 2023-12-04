@@ -10,37 +10,39 @@ try:
     os.mkdir("temp")
 except FileExistsError:
     pass
+
 st.write("Hello, my name is Mohamed Metwally")
 st.write("and the first project")
 
 st.title("Text to Speech")
 translator = Translator()
 
-def remove_files(n):
-    mp3_files = glob.glob("temp/*mp3")
-    if len(mp3_files) != 0:
+def remove_old_files(n_days):
+    mp3_files = glob.glob("temp/*.mp3")
+    if mp3_files:
         now = time.time()
-        n_days = n * 86400
         for f in mp3_files:
-            if os.stat(f).st_mtime < now - n_days:
+            if os.stat(f).st_mtime < now - n_days * 86400:
                 os.remove(f)
 
 def text_to_speech(input_language, output_language, text, tld):
     max_retries = 3
-    for _ in range(max_retries):
+    for attempt in range(1, max_retries + 1):
         try:
             translation = translator.translate(text, src=input_language, dest=output_language)
             trans_text = translation.text
             break  # Break out of the loop if translation is successful
         except Exception as e:
-            print(f"Translation failed. Retrying... Error: {e}")
-            time.sleep(1)  # Wait for a short time before retrying
-    else:
-        raise RuntimeError("Failed to translate text after multiple retries.")
+            st.error(f"Translation failed on attempt {attempt}/{max_retries}. Error: {e}")
+            if attempt < max_retries:
+                st.info("Retrying...")
+                time.sleep(1)  # Wait for a short time before retrying
+            else:
+                raise RuntimeError("Failed to translate text after multiple retries.")
 
     tts = gTTS(trans_text, lang=output_language, tld=tld, slow=False)
     try:
-        my_file_name = text[0:20]
+        my_file_name = text[0:20] if text else "audio"
     except IndexError:
         my_file_name = "audio"
     tts.save(f"temp/{my_file_name}.mp3")
@@ -55,37 +57,25 @@ out_lang = st.selectbox(
 )
 display_output_text = st.checkbox("Display output text")
 
-if in_lang == "English":
-    input_language = "en"
-elif in_lang == "Arabic":
-    input_language = "ar"
+# Language code mapping
+lang_mapping = {
+    "English": "en",
+    "Arabic": "ar",
+    "Hebrew": "iw",
+    "Russian": "ru",
+    "German": "de",
+    "Hindi": "hi",
+    "Korean": "ko",
+    "Japanese": "ja",
+    "Chinese": "zh-cn",
+    "Italian": "it",
+    "Spanish": "es",
+    "French": "fr",
+    "Portuguese": "pt",
+}
 
-if out_lang == "English":
-    output_language = "en"
-elif out_lang == "Arabic":
-    output_language = "ar"
-elif out_lang == "Hebrew":
-    output_language = "iw"
-elif out_lang == "Russian":
-    output_language = "ru"
-elif out_lang == "German":
-    output_language = "de"
-elif out_lang == "Hindi":
-    output_language = "hi"
-elif out_lang == "Korean":
-    output_language = "ko"
-elif out_lang == "Japanese":
-    output_language = "ja"
-elif out_lang == "Chinese":
-    output_language = "zh-cn"
-elif out_lang == "Italian":
-    output_language = "it"
-elif out_lang == "Spanish":
-    output_language = "es"
-elif out_lang == "French":
-    output_language = "fr"
-elif out_lang == "Portuguese":
-    output_language = "pt"
+input_language = lang_mapping.get(in_lang, "en")
+output_language = lang_mapping.get(out_lang, "en")
 
 # Text-to-Speech Conversion
 if st.button("Convert"):
@@ -100,4 +90,4 @@ if st.button("Convert"):
         st.write(f" {output_text}")
 
 # Remove old audio files
-remove_files(7)
+remove_old_files(7)
