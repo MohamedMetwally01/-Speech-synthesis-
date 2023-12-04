@@ -1,3 +1,4 @@
 gtts==2.4.0
 streamlit==1.29.0
-googletrans==3.0.0
+googletrans==4.0.0rc1
+googletrans-py==4.0.0
