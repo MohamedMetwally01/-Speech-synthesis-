@@ -3,18 +3,18 @@ import os
 import time
 import glob
 from gtts import gTTS
-from mtranslate import translate
+from googletrans import Translator
 
 # Create 'temp' directory if it doesn't exist
 try:
     os.mkdir("temp")
 except FileExistsError:
     pass
-
 st.write("Hello, my name is Mohamed Metwally")
 st.write("and the first project")
 
 st.title("Text to Speech")
+translator = Translator()
 
 def remove_files(n):
     mp3_files = glob.glob("temp/*mp3")
@@ -25,13 +25,20 @@ def remove_files(n):
             if os.stat(f).st_mtime < now - n_days:
                 os.remove(f)
 
-def text_to_speech(input_language, output_language, text):
-    try:
-        trans_text = translate(text, output_language, input_language)
-    except Exception as e:
-        raise RuntimeError(f"Failed to translate text: {e}")
+def text_to_speech(input_language, output_language, text, tld):
+    max_retries = 3
+    for _ in range(max_retries):
+        try:
+            translation = translator.translate(text, src=input_language, dest=output_language)
+            trans_text = translation.text
+            break  # Break out of the loop if translation is successful
+        except Exception as e:
+            print(f"Translation failed. Retrying... Error: {e}")
+            time.sleep(1)  # Wait for a short time before retrying
+    else:
+        raise RuntimeError("Failed to translate text after multiple retries.")
 
-    tts = gTTS(trans_text, lang=output_language, slow=False)
+    tts = gTTS(trans_text, lang=output_language, tld=tld, slow=False)
     try:
         my_file_name = text[0:20]
     except IndexError:
@@ -44,32 +51,45 @@ text = st.text_input("Enter text")
 in_lang = st.selectbox("Select your input language", ("English", "Arabic"))
 out_lang = st.selectbox(
     "Select your output language",
-    ("English", "Arabic", "French", "German", "Spanish", "Italian", "Portuguese", "Russian", "Chinese", "Japanese", "Korean", "Hindi", "Hebrew")
+    ("English", "Arabic", "Hebrew", "Russian", "German", "Hindi", "Korean", "Japanese", "Chinese", "Italian", "Spanish", "French", "Portuguese")
 )
 display_output_text = st.checkbox("Display output text")
 
-language_codes = {
-    "English": "en",
-    "Arabic": "ar",
-    "French": "fr",
-    "German": "de",
-    "Spanish": "es",
-    "Italian": "it",
-    "Portuguese": "pt",
-    "Russian": "ru",
-    "Chinese": "zh",
-    "Japanese": "ja",
-    "Korean": "ko",
-    "Hindi": "hi",
-    "Hebrew": "he"
-}
+if in_lang == "English":
+    input_language = "en"
+elif in_lang == "Arabic":
+    input_language = "ar"
 
-input_language = language_codes.get(in_lang, "en")
-output_language = language_codes.get(out_lang, "en")
+if out_lang == "English":
+    output_language = "en"
+elif out_lang == "Arabic":
+    output_language = "ar"
+elif out_lang == "Hebrew":
+    output_language = "iw"
+elif out_lang == "Russian":
+    output_language = "ru"
+elif out_lang == "German":
+    output_language = "de"
+elif out_lang == "Hindi":
+    output_language = "hi"
+elif out_lang == "Korean":
+    output_language = "ko"
+elif out_lang == "Japanese":
+    output_language = "ja"
+elif out_lang == "Chinese":
+    output_language = "zh-cn"
+elif out_lang == "Italian":
+    output_language = "it"
+elif out_lang == "Spanish":
+    output_language = "es"
+elif out_lang == "French":
+    output_language = "fr"
+elif out_lang == "Portuguese":
+    output_language = "pt"
 
 # Text-to-Speech Conversion
 if st.button("Convert"):
-    result, output_text = text_to_speech(input_language, output_language, text)
+    result, output_text = text_to_speech(input_language, output_language, text, "com")
     audio_file = open(f"temp/{result}.mp3", "rb")
     audio_bytes = audio_file.read()
     st.markdown("## Your audio:")
