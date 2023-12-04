@@ -38,6 +38,7 @@ def text_to_speech(input_language, output_language, text, tld):
                 st.info("Retrying...")
                 time.sleep(1)  # Wait for a short time before retrying
             else:
+                st.error("Failed to translate text after multiple retries.")
                 raise RuntimeError("Failed to translate text after multiple retries.")
 
     tts = gTTS(trans_text, lang=output_language, tld=tld, slow=False)
@@ -79,15 +80,19 @@ output_language = lang_mapping.get(out_lang, "en")
 
 # Text-to-Speech Conversion
 if st.button("Convert"):
-    result, output_text = text_to_speech(input_language, output_language, text, "com")
-    audio_file = open(f"temp/{result}.mp3", "rb")
-    audio_bytes = audio_file.read()
-    st.markdown("## Your audio:")
-    st.audio(audio_bytes, format="audio/mp3", start_time=0)
+    try:
+        result, output_text = text_to_speech(input_language, output_language, text, "com")
+        audio_file = open(f"temp/{result}.mp3", "rb")
+        audio_bytes = audio_file.read()
+        st.markdown("## Your audio:")
+        st.audio(audio_bytes, format="audio/mp3", start_time=0)
 
-    if display_output_text:
-        st.markdown("## Output text:")
-        st.write(f" {output_text}")
+        if display_output_text:
+            st.markdown("## Output text:")
+            st.write(f" {output_text}")
+
+    except RuntimeError as e:
+        st.error(f"Error: {e}")
 
 # Remove old audio files
 remove_old_files(7)
