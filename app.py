@@ -3,7 +3,7 @@ import os
 import time
 import glob
 from gtts import gTTS
-from translate import Translator as TranslateLib
+from googletrans import Translator
 
 # Create 'temp' directory if it doesn't exist
 try:
@@ -15,6 +15,7 @@ st.write("Hello, my name is Mohamed Metwally")
 st.write("and the first project")
 
 st.title("Text to Speech")
+translator = Translator()
 
 def remove_old_files(n_days):
     mp3_files = glob.glob("temp/*.mp3")
@@ -28,8 +29,8 @@ def text_to_speech(input_language, output_language, text, tld):
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         try:
-            translator = TranslateLib(to_lang=output_language, from_lang=input_language)
-            trans_text = translator.translate(text)
+            translation = translator.translate(text, src=input_language, dest=output_language)
+            trans_text = translation.text
             break  # Break out of the loop if translation is successful
         except Exception as e:
             st.error(f"Translation failed on attempt {attempt}/{max_retries}. Error: {e}")
